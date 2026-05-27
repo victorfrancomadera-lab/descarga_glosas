@@ -878,7 +878,7 @@ def run_portal(usuario: str, password: str, periodo: str, dl_path=None):
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
+            browser = p.chromium.launch(headless=True)
             context = browser.new_context(accept_downloads=True, viewport={"width": 1500, "height": 900})
             page    = context.new_page()
             _current_browser = browser
