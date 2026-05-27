@@ -2228,70 +2228,7 @@ def bolivar_progreso():
                         "actualizado": data.get("actualizado", "")})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
-# ══════════════════════════════════════════════════════════════
-#  RUTAS PORTAL ACTIVA IT
-# ══════════════════════════════════════════════════════════════
 
-@app.route("/portal/start", methods=["POST", "OPTIONS"])
-def portal_start():
-    if request.method == "OPTIONS":
-        return jsonify({"ok": True})
-    data = request.get_json() or {}
-    usuario  = data.get("usuario", "")
-    password = data.get("password", "")
-    periodo  = data.get("periodo", "")
-    if not usuario or not password or not periodo:
-        return jsonify({"ok": False, "error": "Faltan campos: usuario, password, periodo"}), 400
-    try:
-        from DESCARGA_PORTAL import run_portal, reset_state, _job_state, _job_lock
-        with _job_lock:
-            if _job_state["running"]:
-                return jsonify({"ok": False, "error": "Ya hay un proceso en curso"}), 409
-        reset_state()
-        threading.Thread(target=run_portal, args=(usuario, password, periodo), daemon=True).start()
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-
-@app.route("/portal/stop", methods=["POST"])
-def portal_stop():
-    try:
-        from DESCARGA_PORTAL import stop_portal
-        stop_portal()
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-
-@app.route("/portal/status")
-def portal_status():
-    try:
-        since = int(request.args.get("since", 0))
-        from DESCARGA_PORTAL import get_state, get_logs_since
-        state = get_state()
-        logs  = get_logs_since(since)
-        return jsonify({
-            "ok":       True,
-            "running":  state["running"],
-            "finished": state["finished"],
-            "error":    state["error"],
-            "stats":    state["stats"],
-            "logs":     logs,
-            "zip_path": state["zip_path"],
-        })
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-
-@app.route("/portal/reset", methods=["POST"])
-def portal_reset():
-    try:
-        from DESCARGA_PORTAL import reset_state
-        reset_state()
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
     print("=" * 55)
